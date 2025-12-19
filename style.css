@@ -62,3 +62,72 @@ select:focus, input:focus, textarea:focus { border-color: #4a9eff; outline: none
     background: #4a9eff; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;
 }
 #copyBtn:hover { background: #3b8bdb; }
+
+/* Layout */
+.main-layout {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    overflow: hidden; /* Щоб не було подвійних скролів */
+}
+
+.container {
+    flex: 2; /* Основна частина ширша */
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Sidebar History */
+.sidebar {
+    flex: 1; /* Сайдбар вужчий */
+    background: #1a1a1a;
+    border-left: 1px solid #333;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    min-width: 300px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
+
+.clear-btn {
+    background: transparent; border: 1px solid #444; color: #888; padding: 5px 10px; font-size: 0.7rem;
+}
+.clear-btn:hover { border-color: #d9534f; color: #d9534f; }
+
+#history-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* History Card */
+.history-item {
+    background: #252525;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+.history-item:hover { background: #2f2f2f; border-color: #555; }
+.history-item .timestamp { font-size: 0.7rem; color: #666; margin-bottom: 4px; }
+.history-item .preview { color: #ccc; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Favorite Styling */
+.fav-btn {
+    position: absolute; top: 5px; right: 5px;
+    background: none; border: none; color: #444; font-size: 1.2rem; padding: 0;
+}
+.fav-btn:hover, .fav-btn.active { color: #ffd700; }

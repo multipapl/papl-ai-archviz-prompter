@@ -8,67 +8,111 @@
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>AI ARCHVIZ PROMPTER</h1>
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('viewport')">1. Viewport to Render</button>
-            <button class="tab-btn" onclick="openTab('season')">2. Global Season/Light</button>
-            <button class="tab-btn" onclick="openTab('interior')">3. Interior Design</button>
-        </div>
-    </header>
+<div class="main-layout">
+    
+    <div class="container">
+        <header>
+            <h1>AI ARCHVIZ PROMPTER <span style="font-size:0.6em; color:#4a9eff">v2.5</span></h1>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab('viewport')">1. Viewport</button>
+                <button class="tab-btn" onclick="openTab('season')">2. Season</button>
+                <button class="tab-btn" onclick="openTab('interior')">3. Interior</button>
+            </div>
+        </header>
 
-    <div id="viewport" class="tab-content active">
-        <div class="panel">
-            <h2>🧱 Strict Geometry Mode</h2>
-            <p class="desc">Best for raw white/grey blockouts. Forces AI to keep the shape.</p>
-            
-            <label>Context / Biome:</label>
-            <select id="vp_biome"></select> <label>Season & Light:</label>
-            <select id="vp_weather"></select> <label>Lens (mm):</label>
-            <input type="number" id="vp_lens" value="24">
+        <div id="viewport" class="tab-content active">
+            <div class="panel">
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_vp_biome" checked> <label for="use_vp_biome">Context / Biome</label>
+                    </div>
+                    <select id="vp_biome"></select>
+                </div>
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_vp_weather" checked> <label for="use_vp_weather">Season & Light</label>
+                    </div>
+                    <select id="vp_weather"></select>
+                </div>
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_vp_lens" checked> <label for="use_vp_lens">Camera Specs</label>
+                    </div>
+                    <input type="number" id="vp_lens" value="24">
+                </div>
+            </div>
+        </div>
+
+        <div id="season" class="tab-content">
+            <div class="panel">
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_sc_season" checked> <label for="use_sc_season">Target Season</label>
+                    </div>
+                    <select id="sc_season"></select>
+                </div>
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_sc_light" checked> <label for="use_sc_light">Target Lighting</label>
+                    </div>
+                    <select id="sc_light"></select>
+                </div>
+                 <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_sc_lens" checked> <label for="use_sc_lens">Camera</label>
+                    </div>
+                    <input type="number" id="sc_lens" value="35">
+                </div>
+            </div>
+        </div>
+
+        <div id="interior" class="tab-content">
+            <div class="panel">
+                <div class="control-group">
+                    <label>Room Type:</label>
+                    <input type="text" id="in_room" placeholder="e.g. Living Room">
+                </div>
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_in_style" checked> <label for="use_in_style">Style</label>
+                    </div>
+                    <select id="in_style"></select>
+                </div>
+                 <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_in_lens" checked> <label for="use_in_lens">Lens</label>
+                    </div>
+                    <input type="number" id="in_lens" value="18">
+                </div>
+            </div>
+        </div>
+
+        <div class="output-area">
+            <label>Final Prompt:</label>
+            <textarea id="result" readonly></textarea>
+            <div class="actions">
+                <input type="text" id="global_fixes" placeholder="Specific fixes...">
+                <button onclick="copyToClipboard()" id="copyBtn">COPY & SAVE</button>
+            </div>
         </div>
     </div>
 
-    <div id="season" class="tab-content">
-        <div class="panel">
-            <h2>🎨 Creative Reskin Mode</h2>
-            <p class="desc">Best for existing renders. Changes mood/weather aggressively.</p>
-
-            <label>Target Season:</label>
-            <select id="sc_season"></select> <label>Target Lighting:</label>
-            <select id="sc_light"></select> <label>Lens (mm):</label>
-            <input type="number" id="sc_lens" value="35">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>History Log</h2>
+            <div style="display:flex; gap:5px;">
+                <button onclick="downloadHistory()" class="clear-btn" style="border-color:#4a9eff; color:#4a9eff;">Export .txt</button>
+                <button onclick="clearHistory()" class="clear-btn">Clear</button>
+            </div>
         </div>
-    </div>
-
-    <div id="interior" class="tab-content">
-        <div class="panel">
-            <h2>🛋️ Interior Mode</h2>
-            <p class="desc">Focuses on furniture, materials and indoor lighting.</p>
-
-            <label>Room Type:</label>
-            <input type="text" id="in_room" placeholder="e.g. Modern Living Room with open kitchen">
-
-            <label>Style & Mood:</label>
-            <select id="in_style"></select> <label>Lens (mm):</label>
-            <input type="number" id="in_lens" value="18">
-        </div>
-    </div>
-
-    <div class="output-area">
-        <label>Final Prompt:</label>
-        <textarea id="result" readonly></textarea>
-        
-        <div class="actions">
-            <input type="text" id="global_fixes" placeholder="Optional specific fixes (e.g. add people, make glass reflective)...">
-            <button onclick="copyToClipboard()" id="copyBtn">COPY PROMPT</button>
-        </div>
+        <div id="history-list">
+            </div>
     </div>
 
 </div>
 
-<script src="data.js"></script> 
+<script src="data.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
