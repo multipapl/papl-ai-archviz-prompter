@@ -250,6 +250,74 @@ function copyToClipboard() {
     setTimeout(() => { btn.innerText = original; btn.style.background = "#4a9eff"; }, 1000);
 }
 
+// --- 6. BACKUP SYSTEM (JSON) ---
+
+// 1. Зберегти "сирий" файл для відновлення
+function downloadBackup() {
+    const history = localStorage.getItem('prompt_history') || '[]';
+    
+    const blob = new Blob([history], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `archviz_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// 2. Завантажити і об'єднати
+function importBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // Валідація: чи це взагалі масив?
+            if (!Array.isArray(importedData)) {
+                alert("Error: Invalid backup file format.");
+                return;
+            }
+
+            // MERGE LOGIC: Зливаємо поточну історію з новою
+            let currentHistory = JSON.parse(localStorage.getItem('prompt_history') || '[]');
+            
+            // Додаємо тільки ті записи, яких ще немає (перевірка по ID)
+            let addedCount = 0;
+            const existingIds = new Set(currentHistory.map(item => item.id));
+
+            importedData.forEach(item => {
+                if (!existingIds.has(item.id)) {
+                    currentHistory.push(item);
+                    existingIds.add(item.id);
+                    addedCount++;
+                }
+            });
+
+            // Сортуємо по даті (нові зверху), бо після злиття може бути каша
+            currentHistory.sort((a, b) => b.id - a.id);
+            
+            // Обрізаємо до 100 штук, щоб не забити пам'ять, якщо бекапи великі
+            if(currentHistory.length > 100) currentHistory = currentHistory.slice(0, 100);
+
+            // Зберігаємо
+            localStorage.setItem('prompt_history', JSON.stringify(currentHistory));
+            renderHistory();
+            
+            alert(`Success! Imported ${addedCount} prompts.`);
+            
+        } catch (err) {
+            console.error(err);
+            alert("Error parsing JSON file.");
+        }
+        // Очистити інпут, щоб можна було завантажити той самий файл ще раз
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
 // Init
 openTab('viewport');
 renderHistory();

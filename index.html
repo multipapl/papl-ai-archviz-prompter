@@ -100,9 +100,14 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h2>History Log</h2>
-            <div style="display:flex; gap:5px;">
-                <button onclick="downloadHistory()" class="clear-btn" style="border-color:#4a9eff; color:#4a9eff;">Export .txt</button>
-                <button onclick="clearHistory()" class="clear-btn">Clear</button>
+    
+            <input type="file" id="importInput" accept=".json" style="display:none" onchange="importBackup(this)">
+
+            <div style="display:flex; gap:5px; flex-wrap:wrap; justify-content: flex-end;">
+                <button onclick="document.getElementById('importInput').click()" class="clear-btn" title="Import JSON">📥</button>
+                <button onclick="downloadBackup()" class="clear-btn" title="Save Backup (JSON)">💾</button>
+                <button onclick="downloadHistory()" class="clear-btn" title="Export Text">📄 TXT</button>
+                <button onclick="clearHistory()" class="clear-btn" title="Clear All" style="color:#d9534f; border-color:#d9534f;">✕</button>
             </div>
         </div>
         <div id="history-list">
