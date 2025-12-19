@@ -1,4 +1,4 @@
-// --- 1. POPULATE DATA & CUSTOM LOGIC ---
+// --- 1. POPULATE DATA ---
 function populate(elementId, dataArray) {
     const select = document.getElementById(elementId);
     if(!select) return;
@@ -11,14 +11,19 @@ function populate(elementId, dataArray) {
     });
 }
 
-// Load DB
+// === LOAD DATA ===
 populate('vp_biome',   DB.locations);
-populate('vp_weather', DB.renderWeather);
-populate('sc_season',  DB.seasons);
-// For Season Light we reuse general weather or can make separate DB if needed. Using general for now.
-populate('sc_light',   DB.renderWeather); 
-// For Interior Light we reuse general weather
-populate('in_light',   DB.renderWeather);
+populate('vp_season',  DB.simpleSeasons);
+populate('vp_light',   DB.lightingScenarios);
+
+populate('sc_season',  DB.creativeSeasons);
+populate('sc_light',   DB.lightingScenarios);
+
+// INTERIOR UPDATES
+populate('in_biome',   DB.locations);      // <--- NEW: Location for Interior
+populate('in_season',  DB.simpleSeasons);
+populate('in_light',   DB.lightingScenarios);
+
 
 // TOGGLE CUSTOM INPUTS
 function toggleCustom(selectId, inputId) {
@@ -30,7 +35,7 @@ function toggleCustom(selectId, inputId) {
     } else {
         input.style.display = 'none';
     }
-    generate(); // Refresh prompt
+    generate(); 
 }
 
 
@@ -54,17 +59,13 @@ function openTab(tabName) {
 }
 
 document.addEventListener('change', (e) => {
-    // Checkbox toggles
     if (e.target.type === 'checkbox' && e.target.id.startsWith('use_')) {
         const parent = e.target.closest('.control-group');
         if (e.target.checked) parent.classList.remove('disabled');
         else parent.classList.add('disabled');
         generate();
     }
-    // DOF toggles
-    if (e.target.id.endsWith('_dof')) {
-        generate();
-    }
+    if (e.target.id.endsWith('_dof')) generate();
 });
 
 
@@ -77,34 +78,26 @@ function calcRatio() {
     const w = parseInt(document.getElementById('ar_w').value);
     const h = parseInt(document.getElementById('ar_h').value);
     const label = document.getElementById('ar_result');
-
     if (w && h) {
         const divisor = gcd(w, h);
-        const rW = w / divisor;
-        const rH = h / divisor;
-        label.innerText = `Ratio: ${rW}:${rH} (Auto-calculated)`;
-        generate();
+        label.innerText = `Ratio: ${w/divisor}:${h/divisor}`;
     } else {
         label.innerText = "Ratio: Auto";
     }
 }
 
 
-// --- 4. GENERATOR CORE (THE SAUSAGE) ---
+// --- 4. GENERATOR CORE ---
 function generate() {
-    let parts = [];
+    let lines = [];
     
-    // --- HELPER: Get Value (Select vs Custom) ---
     const getVal = (selectId, customInputId, checkboxId) => {
-        // If checkbox exists and is unchecked, return null
         if (checkboxId) {
             const cb = document.getElementById(checkboxId);
             if (cb && !cb.checked) return null;
         }
-
         const select = document.getElementById(selectId);
         if (!select) return null;
-
         if (select.value === 'CUSTOM') {
             const input = document.getElementById(customInputId);
             return input.value ? input.value : null;
@@ -112,144 +105,113 @@ function generate() {
         return select.value;
     };
 
-    // --- HELPER: Get Lens + DOF ---
     const getLensInfo = (lensId, dofId) => {
         const lensVal = document.getElementById(lensId).value;
         const dof = document.getElementById(dofId).checked;
-        
         let txt = `Shot on ${lensVal}mm lens.`;
-        
-        if (!dof) {
-            // Anti-DOF (Sharpness) fix
-            txt += " Deep depth of field, sharp focus throughout, f/8.";
-        } else {
-            // Natural Bokeh
-            txt += " Shallow depth of field, bokeh.";
-        }
+        if (!dof) txt += " Deep depth of field, sharp focus throughout, f/8.";
+        else txt += " Shallow depth of field, bokeh.";
         return txt;
     };
 
-    // --- MIDDLE DETAILS (Global) ---
     const middleDetails = document.getElementById('middle_details').value;
 
 
     // ===========================
-    // MODE 1: VIEWPORT (Exterior)
+    // MODE 1: VIEWPORT
     // ===========================
     if (currentTab === 'viewport') {
-        // 1. PREFIX
-        parts.push("Turn this viewport screenshot from Blender 3D to photorealistic architecture photography.");
-        parts.push("Keep composition, architecture shape and materials basics from the provided image. Strictly adhere to the geometry.");
+        lines.push("Turn this viewport screenshot from Blender 3D to photorealistic architecture photography. Keep composition, architecture shape and materials basics. Keep aspect ratio. Strictly adhere to the geometry.");
         
-        // 2. LOCATION
+        let line2 = "- ";
         const loc = getVal('vp_biome', 'custom_vp_biome', 'use_vp_biome');
-        if(loc) parts.push(loc);
-
-        // 3. WEATHER
-        const weather = getVal('vp_weather', 'custom_vp_weather', 'use_vp_weather');
-        if(weather) parts.push(weather);
-
-        // 4. SPECIFIC ELEMENTS (Middle)
-        if(middleDetails.trim()) parts.push(middleDetails.trim() + ".");
-
-        // 5. CAMERA & STYLE
-        const lens = getLensInfo('vp_lens', 'vp_dof');
-        if(document.getElementById('use_vp_lens').checked) parts.push(lens);
+        const seas = getVal('vp_season', 'custom_vp_season', 'use_vp_season');
         
-        parts.push("High fidelity, 8k resolution, archdaily style.");
+        if (loc) line2 += loc + " ";
+        if (seas) line2 += seas;
+        if (line2 !== "- ") lines.push(line2.trim());
+
+        const light = getVal('vp_light', 'custom_vp_light', 'use_vp_light');
+        if (light) lines.push("- " + light);
+
+        if (middleDetails.trim()) lines.push("- Details: " + middleDetails.trim());
+
+        let lineTech = "- ";
+        if(document.getElementById('use_vp_lens').checked) lineTech += getLensInfo('vp_lens', 'vp_dof') + " ";
+        lineTech += "High fidelity, 8k resolution, archdaily style.";
+        lines.push(lineTech);
 
 
     // ===========================
-    // MODE 2: SEASON (Creative)
+    // MODE 2: SEASON
     // ===========================
     } else if (currentTab === 'season') {
-        // 1. PREFIX
-        parts.push("Retouch this architectural image. Change the season and atmosphere entirely.");
-        parts.push("Keep the main building structure, composition and perspective.");
+        lines.push("Retouch this architectural image. Change the season and atmosphere entirely. Keep the main building structure. Keep aspect ratio.");
         
-        // 2. SEASON
+        let line2 = "- ";
         const seas = getVal('sc_season', 'custom_sc_season', 'use_sc_season');
-        if(seas) parts.push(seas);
+        if(seas) line2 += seas;
+        if(line2 !== "- ") lines.push(line2);
 
-        // 3. LIGHTING
         const light = getVal('sc_light', 'custom_sc_light', 'use_sc_light');
-        if(light) parts.push(light);
+        if(light) lines.push("- " + light);
 
-        // 4. SPECIFIC ELEMENTS (Middle)
-        if(middleDetails.trim()) parts.push(middleDetails.trim() + ".");
-
-        parts.push("Adapt vegetation and materials to the new weather conditions.");
-
-        // 5. CAMERA
-        const lens = getLensInfo('sc_lens', 'sc_dof');
-        if(document.getElementById('use_sc_lens').checked) parts.push(lens);
+        if (middleDetails.trim()) lines.push("- Details: " + middleDetails.trim());
         
-        parts.push("Cinematic lighting, photorealistic.");
+        lines.push("- Adapt vegetation and materials to the new weather conditions.");
+
+        let lineTech = "- ";
+        if(document.getElementById('use_sc_lens').checked) lineTech += getLensInfo('sc_lens', 'sc_dof') + " ";
+        lineTech += "Cinematic lighting, photorealistic.";
+        lines.push(lineTech);
 
 
     // ===========================
-    // MODE 3: INTERIOR (Strict)
+    // MODE 3: INTERIOR
     // ===========================
     } else if (currentTab === 'interior') {
-        // 1. PREFIX (Strict)
-        parts.push("Turn this viewport screenshot from Blender 3D to photorealistic interior design photography.");
-        parts.push("Keep composition, room layout, furniture placement and materials basics. Strictly adhere to the geometry.");
+        lines.push("Turn this viewport screenshot from Blender 3D to photorealistic interior design photography. Keep composition, room layout, furniture placement. Keep aspect ratio. Strictly adhere to the geometry.");
 
-        // 2. ROOM TYPE
+        let line2 = "- ";
         const room = document.getElementById('in_room').value;
-        if(room) parts.push("Room type: " + room + ".");
-
-        // 3. LIGHTING
-        const light = getVal('in_light', 'custom_in_light', 'use_in_light');
-        if(light) parts.push(light);
-
-        // 4. SPECIFIC ELEMENTS (Middle)
-        if(middleDetails.trim()) parts.push(middleDetails.trim() + ".");
-
-        // 5. CAMERA & QUALITY
-        parts.push("Detailed textures, realistic indoor lighting, magazine quality.");
+        const loc = getVal('in_biome', 'custom_in_biome', 'use_in_biome'); // <--- NEW
+        const seas = getVal('in_season', 'custom_in_season', 'use_in_season');
         
-        const lens = getLensInfo('in_lens', 'in_dof');
-        if(document.getElementById('use_in_lens').checked) parts.push(lens);
+        if(room) line2 += "Room type: " + room + ". ";
+        if(loc) line2 += loc + " ";  // <--- NEW: Insert Location
+        if(seas) line2 += seas;
+        if(line2 !== "- ") lines.push(line2.trim());
+
+        const light = getVal('in_light', 'custom_in_light', 'use_in_light');
+        if(light) lines.push("- " + light);
+
+        if (middleDetails.trim()) lines.push("- Details: " + middleDetails.trim());
+
+        let lineTech = "- Detailed textures, realistic indoor lighting, magazine quality. ";
+        if(document.getElementById('use_in_lens').checked) lineTech += getLensInfo('in_lens', 'in_dof');
+        lines.push(lineTech);
     }
 
-    // --- FINAL: ASPECT RATIO ---
-    const w = parseInt(document.getElementById('ar_w').value);
-    const h = parseInt(document.getElementById('ar_h').value);
-    if(w && h) {
-        const divisor = gcd(w, h);
-        parts.push(`Aspect ratio ${w/divisor}:${h/divisor}`);
-    }
-
-    document.getElementById('result').value = parts.filter(p => p && p.trim() !== "").join(" ");
+    document.getElementById('result').value = lines.join("\n");
 }
 
 document.addEventListener('input', generate);
 
 
-// --- 5. HISTORY SYSTEM (Updated for Custom Fields) ---
-
+// --- 5. HISTORY SYSTEM ---
 function saveToHistory(text) {
     let history = JSON.parse(localStorage.getItem('prompt_history') || '[]');
-    
-    // SNAPSHOT LOGIC
     const settings = {};
     
-    // Grab global AR & Middle
     settings['ar_w'] = document.getElementById('ar_w').value;
     settings['ar_h'] = document.getElementById('ar_h').value;
     settings['middle_details'] = document.getElementById('middle_details').value;
 
-    // Grab Tab specific
     const activePanel = document.getElementById(currentTab);
     const inputs = activePanel.querySelectorAll('input, select, textarea');
-    
     inputs.forEach(input => {
-        if(input.type === 'checkbox') {
-            settings[input.id] = input.checked;
-        } else {
-            settings[input.id] = input.value;
-        }
+        if(input.type === 'checkbox') settings[input.id] = input.checked;
+        else settings[input.id] = input.value;
     });
 
     const newItem = {
@@ -280,65 +242,45 @@ function toggleFav(id) {
 function renderHistory() {
     const list = document.getElementById('history-list');
     const history = JSON.parse(localStorage.getItem('prompt_history') || '[]');
-    
     list.innerHTML = "";
-
     history.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
-        
         div.onclick = (e) => {
             if(e.target.classList.contains('fav-btn')) return;
-
             openTab(item.tab);
-
-            // Restore Settings
             if (item.settings) {
-                // First: Global Restore
                 document.getElementById('ar_w').value = item.settings['ar_w'] || '';
                 document.getElementById('ar_h').value = item.settings['ar_h'] || '';
                 document.getElementById('middle_details').value = item.settings['middle_details'] || '';
-                calcRatio(); // update label
+                calcRatio();
 
-                // Second: Tab Specific Restore
                 for (const [id, value] of Object.entries(item.settings)) {
                     const el = document.getElementById(id);
                     if (el) {
                         if (el.type === 'checkbox') {
                             el.checked = value;
                             const parent = el.closest('.control-group');
-                            if(parent) {
-                                if(value) parent.classList.remove('disabled');
-                                else parent.classList.add('disabled');
-                            }
+                            if(parent) (value) ? parent.classList.remove('disabled') : parent.classList.add('disabled');
                         } else {
                             el.value = value;
-                            // Trigger Custom visibility check
                             if(el.tagName === 'SELECT') {
-                                // Find associated custom input ID (hacky but works based on naming)
                                 const customId = 'custom_' + id;
                                 const customInput = document.getElementById(customId);
-                                if(customInput) {
-                                    if(value === 'CUSTOM') customInput.style.display = 'block';
-                                    else customInput.style.display = 'none';
-                                }
+                                if(customInput) customInput.style.display = (value === 'CUSTOM') ? 'block' : 'none';
                             }
                         }
                     }
                 }
             }
             generate();
-            
             div.style.borderColor = '#4a9eff';
             setTimeout(() => div.style.borderColor = '#333', 500);
         };
-
         div.innerHTML = `
             <div class="timestamp">${item.date} • ${item.tab.toUpperCase()}</div>
-            <div class="preview">${item.text}</div>
-            <button class="fav-btn ${item.fav ? 'active' : ''}" onclick="toggleFav(${item.id})">
-                ${item.fav ? '★' : '☆'}
-            </button>
+            <div class="preview" style="white-space: pre-wrap;">${item.text}</div>
+            <button class="fav-btn ${item.fav ? 'active' : ''}" onclick="toggleFav(${item.id})">${item.fav ? '★' : '☆'}</button>
         `;
         list.appendChild(div);
     });
@@ -351,17 +293,14 @@ function clearHistory() {
     }
 }
 
-// --- 6. EXPORT / IMPORT ---
-
 function downloadBackup() {
     const history = localStorage.getItem('prompt_history') || '[]';
     const blob = new Blob([history], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `archviz_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `archviz_backup.json`;
     a.click();
-    window.URL.revokeObjectURL(url);
 }
 
 function downloadHistory() {
@@ -387,14 +326,12 @@ function importBackup(input) {
             const importedData = JSON.parse(e.target.result);
             let currentHistory = JSON.parse(localStorage.getItem('prompt_history') || '[]');
             const existingIds = new Set(currentHistory.map(item => item.id));
-            
             importedData.forEach(item => {
                 if (!existingIds.has(item.id)) {
                     currentHistory.push(item);
                     existingIds.add(item.id);
                 }
             });
-            
             currentHistory.sort((a, b) => b.id - a.id);
             localStorage.setItem('prompt_history', JSON.stringify(currentHistory));
             renderHistory();
@@ -404,13 +341,11 @@ function importBackup(input) {
     reader.readAsText(file);
 }
 
-
 function copyToClipboard() {
     const copyText = document.getElementById("result");
     copyText.select();
     navigator.clipboard.writeText(copyText.value);
     saveToHistory(copyText.value);
-    
     const btn = document.getElementById("copyBtn");
     btn.innerText = "SAVED!";
     btn.style.background = "#4caf50";

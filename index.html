@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Archviz Prompter v3.0</title>
+    <title>AI Archviz Prompter v3.1</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,7 +12,7 @@
     
     <div class="container">
         <header>
-            <h1>AI ARCHVIZ PROMPTER <span style="font-size:0.6em; color:#4a9eff">v3.0</span></h1>
+            <h1>AI ARCHVIZ PROMPTER <span style="font-size:0.6em; color:#4a9eff">v3.1 List Mode</span></h1>
             <div class="tabs">
                 <button class="tab-btn active" onclick="openTab('viewport')">1. Viewport</button>
                 <button class="tab-btn" onclick="openTab('season')">2. Season</button>
@@ -33,7 +33,7 @@
 
         <div id="viewport" class="tab-content active">
             <div class="panel">
-                <p class="desc">Strict geometry mode for Exteirors.</p>
+                <p class="desc">Strict geometry mode for Exteriors.</p>
                 
                 <div class="control-group">
                     <div class="control-header">
@@ -45,10 +45,18 @@
 
                 <div class="control-group">
                     <div class="control-header">
-                        <input type="checkbox" id="use_vp_weather" checked> <label for="use_vp_weather">Season & Light</label>
+                        <input type="checkbox" id="use_vp_season" checked> <label for="use_vp_season">Season</label>
                     </div>
-                    <select id="vp_weather" onchange="toggleCustom('vp_weather', 'custom_vp_weather')"></select>
-                    <input type="text" id="custom_vp_weather" class="custom-input" placeholder="Type your custom lighting...">
+                    <select id="vp_season" onchange="toggleCustom('vp_season', 'custom_vp_season')"></select>
+                    <input type="text" id="custom_vp_season" class="custom-input" placeholder="Custom season...">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_vp_light" checked> <label for="use_vp_light">Lighting</label>
+                    </div>
+                    <select id="vp_light" onchange="toggleCustom('vp_light', 'custom_vp_light')"></select>
+                    <input type="text" id="custom_vp_light" class="custom-input" placeholder="Custom lighting...">
                 </div>
 
                  <div class="control-group">
@@ -56,7 +64,6 @@
                         <input type="checkbox" id="use_vp_lens" checked> <label for="use_vp_lens">Camera Specs</label>
                     </div>
                     <input type="number" id="vp_lens" value="24" placeholder="Focal Length (mm)">
-                    
                     <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
                         <input type="checkbox" id="vp_dof"> 
                         <label for="vp_dof" style="margin:0; font-weight:normal; color:#aaa;">Enable Blur/DOF (Default: Sharp)</label>
@@ -98,13 +105,29 @@
             </div>
         </div>
 
-        <div id="interior" class="tab-content">
+       <div id="interior" class="tab-content">
             <div class="panel">
                 <p class="desc">Strict geometry mode for Interiors.</p>
 
                 <div class="control-group">
                     <label>Room Type:</label>
                     <input type="text" id="in_room" placeholder="e.g. Living Room, Open Kitchen">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_in_biome" checked> <label for="use_in_biome">Context / Location (View)</label>
+                    </div>
+                    <select id="in_biome" onchange="toggleCustom('in_biome', 'custom_in_biome')"></select>
+                    <input type="text" id="custom_in_biome" class="custom-input" placeholder="Custom coords or location...">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <input type="checkbox" id="use_in_season" checked> <label for="use_in_season">Season (Outside View)</label>
+                    </div>
+                    <select id="in_season" onchange="toggleCustom('in_season', 'custom_in_season')"></select>
+                    <input type="text" id="custom_in_season" class="custom-input" placeholder="Custom season...">
                 </div>
 
                 <div class="control-group">
@@ -130,7 +153,7 @@
 
         <div class="control-group" style="border-color: #4a9eff; margin-top:15px;">
             <label style="color:#4a9eff">✨ Specific Elements (The "Middle" Block):</label>
-            <textarea id="middle_details" rows="2" placeholder="e.g. wet asphalt, fallen leaves, people walking, specific furniture details... (Inserted after Lighting)"></textarea>
+            <textarea id="middle_details" rows="2" placeholder="e.g. wet asphalt, fallen leaves, people walking..."></textarea>
         </div>
 
         <div class="output-area">
