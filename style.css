@@ -1,0 +1,64 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+h1 { font-size: 1.2rem; color: #888; letter-spacing: 2px; text-align: center; margin-bottom: 20px; }
+h2 { color: #ffd700; font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 0; }
+.desc { font-size: 0.8rem; color: #666; font-style: italic; margin-bottom: 15px; }
+
+/* TABS */
+.tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    color: #888;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.2s;
+}
+.tab-btn:hover { background: #2a2a2a; }
+.tab-btn.active {
+    background: #252525;
+    color: #4a9eff;
+    border-bottom: 2px solid #4a9eff;
+    font-weight: bold;
+}
+
+/* CONTENT */
+.tab-content { display: none; background: #252525; padding: 20px; border-radius: 0 0 6px 6px; border: 1px solid #333; }
+.tab-content.active { display: block; }
+
+label { display: block; font-size: 0.85rem; margin: 10px 0 5px; color: #aaa; font-weight: 600; }
+
+select, input, textarea {
+    width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #444;
+    color: #fff; border-radius: 4px; box-sizing: border-box; font-family: monospace;
+}
+select:focus, input:focus, textarea:focus { border-color: #4a9eff; outline: none; }
+
+/* OUTPUT */
+.output-area { margin-top: 20px; background: #1a1a1a; padding: 15px; border-radius: 6px; border: 1px solid #333; flex: 1; display: flex; flex-direction: column; }
+#result { flex: 1; min-height: 100px; margin-bottom: 10px; border: 1px solid #444; }
+.actions { display: flex; gap: 10px; }
+#global_fixes { flex: 2; }
+#copyBtn {
+    flex: 1;
+    background: #4a9eff; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px;
+}
+#copyBtn:hover { background: #3b8bdb; }
