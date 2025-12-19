@@ -62,14 +62,24 @@ function generate() {
         parts.push("Cinematic lighting, photorealistic.");
 
     } else if (currentTab === 'interior') {
-        parts.push("Photorealistic interior design photography. Strictly adhere to the room layout and furniture placement.");
+        // --- MODE 3: INTERIOR (Updated to Strict Viewport Logic) ---
         
+        // 1. Жорсткий вступ (як на 1-й вкладці)
+        parts.push("Turn this viewport screenshot from Blender 3D to photorealistic interior photography.");
+        parts.push("Keep composition, room layout, furniture placement and materials basics from the provided image."); 
+        parts.push("Strictly adhere to the geometry.");
+        
+        // 2. Специфіка кімнати
         const roomType = document.getElementById('in_room').value;
         if (roomType) parts.push("Room type: " + roomType + ".");
         
-        parts.push(document.getElementById('in_style').value);
+        // 3. Стиль з бази даних (якщо увімкнено)
+        addIfChecked('use_in_style', document.getElementById('in_style').value);
+        
         parts.push("Detailed textures, realistic indoor lighting, magazine quality.");
-        parts.push("Shot on " + document.getElementById('in_lens').value + "mm wide angle lens.");
+        
+        // 4. Лінза
+        addIfChecked('use_in_lens', "Shot on " + document.getElementById('in_lens').value + "mm wide angle lens.");
     }
 
     if (fixes.trim() !== "") parts.push("Additional details: " + fixes + ".");
