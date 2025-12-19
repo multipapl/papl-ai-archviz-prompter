@@ -19,8 +19,7 @@ populate('vp_light',   DB.lightingScenarios);
 populate('sc_season',  DB.creativeSeasons);
 populate('sc_light',   DB.lightingScenarios);
 
-// INTERIOR UPDATES
-populate('in_biome',   DB.locations);      // <--- NEW: Location for Interior
+populate('in_biome',   DB.locations);
 populate('in_season',  DB.simpleSeasons);
 populate('in_light',   DB.lightingScenarios);
 
@@ -87,7 +86,7 @@ function calcRatio() {
 }
 
 
-// --- 4. GENERATOR CORE ---
+// --- 4. GENERATOR CORE (CLEAN LIST MODE) ---
 function generate() {
     let lines = [];
     
@@ -123,13 +122,12 @@ function generate() {
     if (currentTab === 'viewport') {
         lines.push("Turn this viewport screenshot from Blender 3D to photorealistic architecture photography. Keep composition, architecture shape and materials basics. Keep aspect ratio. Strictly adhere to the geometry.");
         
-        let line2 = "- ";
+        // Split Context & Season into separate bullet points
         const loc = getVal('vp_biome', 'custom_vp_biome', 'use_vp_biome');
+        if (loc) lines.push("- " + loc);
+
         const seas = getVal('vp_season', 'custom_vp_season', 'use_vp_season');
-        
-        if (loc) line2 += loc + " ";
-        if (seas) line2 += seas;
-        if (line2 !== "- ") lines.push(line2.trim());
+        if (seas) lines.push("- " + seas);
 
         const light = getVal('vp_light', 'custom_vp_light', 'use_vp_light');
         if (light) lines.push("- " + light);
@@ -148,10 +146,8 @@ function generate() {
     } else if (currentTab === 'season') {
         lines.push("Retouch this architectural image. Change the season and atmosphere entirely. Keep the main building structure. Keep aspect ratio.");
         
-        let line2 = "- ";
         const seas = getVal('sc_season', 'custom_sc_season', 'use_sc_season');
-        if(seas) line2 += seas;
-        if(line2 !== "- ") lines.push(line2);
+        if(seas) lines.push("- " + seas);
 
         const light = getVal('sc_light', 'custom_sc_light', 'use_sc_light');
         if(light) lines.push("- " + light);
@@ -172,15 +168,15 @@ function generate() {
     } else if (currentTab === 'interior') {
         lines.push("Turn this viewport screenshot from Blender 3D to photorealistic interior design photography. Keep composition, room layout, furniture placement. Keep aspect ratio. Strictly adhere to the geometry.");
 
-        let line2 = "- ";
+        // Clean split for Interior params
         const room = document.getElementById('in_room').value;
-        const loc = getVal('in_biome', 'custom_in_biome', 'use_in_biome'); // <--- NEW
+        if(room) lines.push("- Room type: " + room + ".");
+
+        const loc = getVal('in_biome', 'custom_in_biome', 'use_in_biome');
+        if(loc) lines.push("- " + loc);
+
         const seas = getVal('in_season', 'custom_in_season', 'use_in_season');
-        
-        if(room) line2 += "Room type: " + room + ". ";
-        if(loc) line2 += loc + " ";  // <--- NEW: Insert Location
-        if(seas) line2 += seas;
-        if(line2 !== "- ") lines.push(line2.trim());
+        if(seas) lines.push("- " + seas);
 
         const light = getVal('in_light', 'custom_in_light', 'use_in_light');
         if(light) lines.push("- " + light);
